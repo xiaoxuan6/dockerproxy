@@ -1,0 +1,9 @@
+.github
+/tmp
+.air.toml
+.env
+.gitignore
+.goreleaser.yaml
+Dockerfile
+LICENSE
+README.md

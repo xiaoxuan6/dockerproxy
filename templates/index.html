@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charSet="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="/static/css/index.css"/>
+    <title>Docker 镜像加速站集合 - License server</title>
+    <meta name="description" content="本站所收集的 Docker 系列服务器地址均来源于网络，License server。"/>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" sizes="16x16"/>
+</head>
+<body>
+<main class="flex min-h-screen flex-col items-center px-3 sm:px-6 md:px-12 lg:px-16 xl:px-24 py-8">
+    <div class="z-10 w-full max-w-5xl items-center justify-between font-serif">
+        <div class="w-full px-3 md:px-6 lg:px-8 left-0 top-0 font-bold from-zinc-200 pb-6 pt-8 backdrop-blur-2xl static">
+            <p class="text-3xl text-center">
+                Docker 镜像加速站集合
+            </p>
+            <p class="text-base pt-2 text-center">进度条为测试连接状态，并非一定可用；如果某个URL无效，请切换下一个。</p>
+        </div>
+    </div>
+    <div class="pt-5 place-items-center">
+        <p class="fixed bottom-0 right-4 pb-6 pt-8 z-50">
+            <span class="sub-data max-w-40 text-gray-500"></span>
+            <span class="last-update-time">
+                最后更新时间:{{ .last_update_time }}
+            </span>
+        </p>
+        <p class="totalSeconds" hidden>{{ .sub_data }}</p>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 text-center contents">
+            {{ range $value := .data }}
+            <div class="w-full flex justify-center items-center">
+                <div class="w-52 h-12 relative rounded overflow-hidden z-100 before:content-[&quot;&quot;] before:h-24 before:w-24 before:rounded-full before:absolute before:z-200 before:inset-0 before:left-0 before:top-0 before:bg-radial-gradient before:translate-x-[var(--x,10000px)] before:translate-y-[var(--y,10000px)]">
+                    <div class="p-2 flex flex-row items-center justify-between space-x-2 cursor-pointer absolute inset-[1px] rounded z-300 bg-gray-100 dark:bg-black scroll-container">
+                        <div class="max-w-5xl overflow-clip hover:overflow-auto">
+                            <p class="dark:text-gray-200 transition-all duration-300 scroll-text text-nowrap">
+                                <a href="{{ $value.Url }}" target="_blank">{{ $value.Url }}</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div aria-valuemax="100" aria-valuemin="0" role="progressbar" data-state="indeterminate"
+                         data-max="100"
+                         class="h-1 rounded-full bg-indigo-500/20 w-[96%] absolute bottom-[3px] left-[2%] overflow-hidden">
+                        <div data-state="indeterminate" data-max="100"
+                             class="h-full w-full flex-1 bg-{{if $value.Stat}}indigo{{else}}red{{end}}-500 transition-all"
+                             style="transform:translateX(-0%)"></div>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</main>
+</body>
+<script src="/static/js/jquery-3.6.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    $(document).ready(function () {
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socket = new WebSocket(protocol + window.location.host + "/ws");
+        socket.onmessage = event => {
+            let parsedData = JSON.parse(event.data);
+
+            append(parsedData.data)
+            autoInterval(parsedData.sub_data)
+            $('.last-update-time').text('最后更新时间:' + parsedData.last_update_time)
+        };
+        socket.close = event => {
+            console.log("WebSocket closed. Reconnecting...");
+        }
+
+        let totalSeconds = document.querySelector('.totalSeconds').innerHTML
+        autoInterval(totalSeconds)
+
+        function autoInterval(totalSeconds) {
+            const countdown = setInterval(function () {
+                let minutes = Math.floor(totalSeconds / 60);
+                let seconds = totalSeconds % 60;
+
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                $('.sub-data').text('剩余更新时间:' + minutes + ':' + seconds);
+
+                totalSeconds--;
+                if (totalSeconds < 0) {
+                    clearInterval(countdown);
+                    // location.reload(); // 刷新页面
+                }
+            }, 1000);
+        }
+    })
+</script>
+</html>

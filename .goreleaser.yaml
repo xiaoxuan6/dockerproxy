@@ -1,0 +1,22 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+builds:
+  - skip: true
+
+release:
+  footer: |
+    Full Changelog: [{{ .PreviousTag }}...{{ .Tag }}](https://{{ .ModulePath }}/compare/{{ .PreviousTag }}...{{ .Tag }})
+
+changelog:
+  sort: desc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^Merge'
+      - '^test'
+  groups:
+    - title: '🚀 Features'
+      regexp: 'feat:'
+    - title: '🐛 Bug Fixes'
+      regexp: 'fix:'
+    - title: '🔨 Others'
