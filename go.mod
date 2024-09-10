@@ -3,6 +3,7 @@ module github.com/xiaoxuan6/dockerproxy
 go 1.22.5
 
 require (
+	github.com/gin-contrib/gzip v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
