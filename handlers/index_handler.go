@@ -62,12 +62,11 @@ func Ws(c *gin.Context) {
 			global.LastUpdateTime = time.Now()
 			global.NextUpdateTime = global.LastUpdateTime.Add(global.AutoUpdateTime)
 
-			err = ws.WriteJSON(gin.H{
+			if err = ws.WriteJSON(gin.H{
 				"data":             urls,
 				"sub_data":         int(global.NextUpdateTime.Sub(time.Now()).Seconds()),
 				"last_update_time": global.LastUpdateTime.Format(time.DateTime),
-			})
-			if err != nil {
+			}); err != nil {
 				log.Printf("Error sending message or Connection closed: %v", err)
 				return
 			}
