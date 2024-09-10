@@ -46,38 +46,48 @@ func (i indexService) FetchUrls() {
 }
 
 func (i indexService) FetchUrlsWithVerify() []Item {
-	urls := make([]Item, 0)
+	urls, successUrls, errorUrls := make([]Item, 0), make([]Item, 0), make([]Item, 0)
 	for _, url := range global.Urls {
 		url := url
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
-			client := &http.Client{
-				Timeout: 5 * time.Second,
-			}
-			resp, err := client.Get(url)
-			if err != nil {
-				urls = append(urls, Item{
-					url,
-					false,
-				})
-				return
-			}
-			defer resp.Body.Close()
-
-			target := true
-			if resp.StatusCode != http.StatusOK {
-				target = false
-			}
-
+			result := verifyWithUrl(url)
 			urls = append(urls, Item{
 				url,
-				target,
+				result,
 			})
 		}()
 	}
 
 	wg.Wait()
-	return urls
+	for _, value := range urls {
+		if value.Stat == true {
+			successUrls = append(successUrls, value)
+		} else {
+			errorUrls = append(errorUrls, value)
+		}
+	}
+
+	successUrls = append(successUrls, errorUrls...)
+	return successUrls
+}
+
+func verifyWithUrl(url string) bool {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+
+	return true
 }
